@@ -57,47 +57,65 @@ colEcho $cyanB "Updated for efficiency and cross-distro use by SkeletonMan.\n"
 colEcho $cyanB "Enhancements by Manganar.\n"
 colEcho $cyanB "Thanks to @m3p89goljrf7fu9eched in the Medicat Discord for pointing out a bug.\n"
 
+skipInstall=false
+osId=grep "(?<=ID=)[a-zA-Z]+(?=\n)" /etc/release
 # Set variables to support different distros.
-if grep -qs "ubuntu" /etc/os-release; then
-	os="ubuntu"
-	pkgmgr="apt"
-	install_arg="install"
-	update_arg="update"
-elif grep -qs "freebsd" /etc/os-release; then
-	os="freebsd"
-	pkgmgr="pkg"
-	install_arg="install"
-	update_arg="update"
-elif grep -qs "alpine" /etc/os-release; then
-	os="alpine"
-	pkgmgr="apk"
-	install_arg="add"
-	update_arg="update"
-elif [[ -e /etc/debian_version ]]; then
-	os="debian"
-	pkgmgr="apt"
-	install_arg="install"
-	update_arg="update"
-elif [[ -e /etc/almalinux-release || -e /etc/rocky-release || -e /etc/centos-release ]]; then
+# Find fileinfo here https://github.com/stejskalleos/os_release/tree/main
+if [ $osId = ubuntu ]; then
+	os=ubuntu
+	pkgmgr=apt
+ 	install_arg=install
+  	update_arg=update
+elif [ $osId = freebsd ]; then
+	os=freebsd
+	pkgmgr=pkg
+	install_arg=install
+	update_arg=update
+elif [ $osId = alpine ]; then
+	os=alpine
+	pkgmgr=apk
+	install_arg=add
+	update_arg=update
+elif [ $osId = gentoo ]; then
+	os=gentoo
+	pkgmgr=emerge
+	install_arg=""
+ 	update_arg=""
+  colEcho "WARNING: This script does not install software onto a Gentoo System."
+  colEcho "Please ensure the below commands are available before continuing."
+  colEcho "wget 7z mkntfs aria2c"
+  read -p "yn" -n1 confirm
+  if [ $confirm = y ]; then
+  	skipInstall=true
+  else; then
+  	exit 2
+   fi
+elif [ $osId = debian ]; then
+	os=debian
+	pkgmgr=apt
+	install_arg=install
+	update_arg=update
+elif [ $osId = almalinux || $osId = rocky || $osId = centos ]; then
 	colEcho $redB "Fuck Red-Hat for putting source code behind paywalls."
-	os="centos"
-	pkgmgr="yum"
-	install_arg="install"
-	update_arg="update"
-elif [[ -e /etc/fedora-release ]]; then
-	os="fedora"
-	pkgmgr="yum"
-	install_arg="install"
-	update_arg="update"
-elif [[ -e /etc/nobara ]]; then
-	colEcho $redB "gaming moment"
-	os="fedora"
-	pkgmgr="yum"
-	install_arg="install"
-	update_arg="update"
-elif [[ -e /etc/arch-release ]]; then
-	os="arch"
-	pkgmgr="pacman"
+	os=centos
+	pkgmgr=yum
+	install_arg=install
+	update_arg=update
+elif [ $osId = fedora ]; then
+	os=fedora
+	pkgmgr=yum
+	install_arg=install
+	update_arg=update
+# nobara does not state modified os-info file therefore explicit support should be unrequired
+#elif [[ -e /etc/nobara ]]; then
+#	colEcho $redB "gaming moment"
+#	os="fedora"
+#	pkgmgr="yum"
+#	install_arg="install"
+#	update_arg="update"
+elif [ $osId = arch ]; then
+	os=arch
+	pkgmgr=pacman
 	install_arg="-S --needed --noconfirm"
 	update_arg="-Syy"
 else
@@ -107,6 +125,7 @@ fi
 
 colEcho $cyanB "Operating System Identified:$whiteB $os \n"
 
+if ! $skipInstall; then
 # Ensure dependencies are installed: wget, 7z, mkntfs, and aria2c only if Medicat 7z file is not present
 colEcho $cyanB "\nLocating the Medicat 7z file..."
 
@@ -155,7 +174,7 @@ fi
 if ! [ $(which aria2c 2>/dev/null)] && [ -z "$location" ]; then
 	sudo $pkgmgr $install_arg aria2
 fi
-
+fi
 # Identify latest Ventoy release.
 venver=$(wget -q -O - https://api.github.com/repos/ventoy/Ventoy/releases/latest | grep '"tag_name":' | cut -d'"' -f4)
 
