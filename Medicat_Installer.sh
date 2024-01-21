@@ -61,12 +61,7 @@ skipInstall=false
 osId=grep "(?<=ID=)[a-zA-Z]+(?=\n)" /etc/release
 # Set variables to support different distros.
 # Find fileinfo here https://github.com/stejskalleos/os_release/tree/main
-if [ $osId = ubuntu ]; then
-	os=ubuntu
-	pkgmgr=apt
- 	install_arg=install
-  	update_arg=update
-elif [ $osId = freebsd ]; then
+if [ $osId = freebsd ]; then
 	os=freebsd
 	pkgmgr=pkg
 	install_arg=install
@@ -90,7 +85,7 @@ elif [ $osId = gentoo ]; then
   else; then
   	exit 2
    fi
-elif [ $osId = debian ]; then
+elif [ $osId = debian || $osId = ubuntu ]; then
 	os=debian
 	pkgmgr=apt
 	install_arg=install
@@ -106,13 +101,6 @@ elif [ $osId = fedora ]; then
 	pkgmgr=yum
 	install_arg=install
 	update_arg=update
-# nobara does not state modified os-info file therefore explicit support should be unrequired
-#elif [[ -e /etc/nobara ]]; then
-#	colEcho $redB "gaming moment"
-#	os="fedora"
-#	pkgmgr="yum"
-#	install_arg="install"
-#	update_arg="update"
 elif [ $osId = arch ]; then
 	os=arch
 	pkgmgr=pacman
